@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提醒功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        input {
+            padding: 10px;
+            margin: 5px;
+            width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #ec4899;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #db2777;
+        }
+        .log {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>提醒功能测试</h1>
+
+    <div class="section">
+        <h2>步骤 1: 登录</h2>
+        <input type="text" id="loginEmail" placeholder="邮箱" value="1587771494@qq.com">
+        <input type="password" id="loginPassword" placeholder="密码" value="123456">
+        <button onclick="login()">登录</button>
+        <div id="loginLog" class="log"></div>
+    </div>
+
+    <div class="section">
+        <h2>步骤 2: 获取提醒列表</h2>
+        <button onclick="getReminders()">获取提醒</button>
+        <div id="remindersLog" class="log"></div>
+    </div>
+
+    <div class="section">
+        <h2>步骤 3: 发送提醒（需要登录）</h2>
+        <input type="text" id="toUserId" placeholder="目标用户ID" value="fce5ec30-8442-4824-98b8-262dab24d35d">
+        <input type="text" id="mealType" placeholder="餐次（breakfast/lunch/dinner）" value="lunch">
+        <button onclick="sendReminder()">发送提醒</button>
+        <div id="sendLog" class="log"></div>
+    </div>
+
+    <div class="section">
+        <h2>步骤 4: 轮询提醒</h2>
+        <button onclick="startPolling()">开始轮询（每5秒）</button>
+        <button onclick="stopPolling()">停止轮询</button>
+        <div id="pollingLog" class="log"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+        let token = '';
+        let pollingInterval = null;
+
+        function log(elementId, message, type = 'info') {
+            const logElement = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : '';
+            logElement.innerHTML = `<div class="${className}">[${timestamp}] ${message}</div>` + logElement.innerHTML;
+        }
+
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+                log('loginLog', `登录响应: ${JSON.stringify(result, null, 2)}`);
+
+                if (result.data && result.data.token) {
+                    token = result.data.token;
+                    log('loginLog', '登录成功！Token已保存', 'success');
+                } else {
+                    log('loginLog', `登录失败: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                log('loginLog', `请求失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function getReminders() {
+            if (!token) {
+                log('remindersLog', '请先登录', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v1/reminders`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                const result = await response.json();
+                log('remindersLog', `获取提醒响应: ${JSON.stringify(result, null, 2)}`);
+            } catch (error) {
+                log('remindersLog', `请求失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function sendReminder() {
+            if (!token) {
+                log('sendLog', '请先登录', 'error');
+                return;
+            }
+
+            const toUserId = document.getElementById('toUserId').value;
+            const mealType = document.getElementById('mealType').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/v1/reminders`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        toUserId,
+                        mealType,
+                        date: new Date().toISOString().split('T')[0]
+                    })
+                });
+
+                const result = await response.json();
+                log('sendLog', `发送提醒响应: ${JSON.stringify(result, null, 2)}`);
+            } catch (error) {
+                log('sendLog', `请求失败: ${error.message}`, 'error');
+            }
+        }
+
+        function startPolling() {
+            if (!token) {
+                log('pollingLog', '请先登录', 'error');
+                return;
+            }
+
+            if (pollingInterval) {
+                log('pollingLog', '轮询已经在运行', 'error');
+                return;
+            }
+
+            log('pollingLog', '开始轮询提醒（每5秒）', 'success');
+            pollingInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/v1/reminders`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    const result = await response.json();
+                    const remindersCount = result.data ? result.data.length : 0;
+                    const unreadCount = result.data ? result.data.filter(r => !r.is_read).length : 0;
+
+                    log('pollingLog', `轮询结果: 提醒总数=${remindersCount}, 未读=${unreadCount}`);
+
+                    if (unreadCount > 0) {
+                        log('pollingLog', `收到新提醒！\n${JSON.stringify(result.data[0], null, 2)}`, 'success');
+                        alert(`收到 ${result.data[0].from_users?.name || '好友'} 的提醒：记得吃${result.data[0].meal_type}！`);
+                    }
+                } catch (error) {
+                    log('pollingLog', `轮询失败: ${error.message}`, 'error');
+                }
+            }, 5000);
+        }
+
+        function stopPolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+                log('pollingLog', '轮询已停止', 'success');
+            } else {
+                log('pollingLog', '轮询未运行', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
