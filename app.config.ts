@@ -13,7 +13,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.personal.eatornot", // 请改成你的，比如 com.zhangsan.eatornot
+      "bundleIdentifier": "com.personal.eatornot",
       "buildNumber": "1"
     },
     "android": {
@@ -21,7 +21,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.personal.eatornot" // 请改成你的，比如 com.zhangsan.eatornot
+      "package": "com.personal.eatornot"
     },
     "web": {
       "bundler": "metro",
@@ -70,11 +70,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ],
     "experiments": {
       "typedRoutes": true
-    },
-    "extra": {
-      "eas": {
-        "projectId": "ad00129e-5569-46b6-a8ec-01d0e9dd5c9" // ⚠️ 可以留空，构建时会自动创建
-      }
     }
   }
 }
