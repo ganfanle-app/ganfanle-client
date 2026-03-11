@@ -13,7 +13,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.personal.eatornot",
+      "bundleIdentifier": "com.ssisemi.ganfanle",
       "buildNumber": "1"
     },
     "android": {
@@ -21,7 +21,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.personal.eatornot"
+      "package": "com.ssisemi.ganfanle"
     },
     "web": {
       "bundler": "metro",
