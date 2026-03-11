@@ -73,7 +73,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     "extra": {
       "eas": {
-        "projectId": "your-project-id" // ⚠️ 可以留空，构建时会自动创建
+        "projectId": "ad00129e-5569-46b6-a8ec-01d0e9dd5c9" // ⚠️ 可以留空，构建时会自动创建
       }
     }
   }
