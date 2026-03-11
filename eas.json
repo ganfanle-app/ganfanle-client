@@ -1,6 +1,8 @@
 {
   "cli": {
-    "version": ">= 5.2.0"
+    "version": ">= 5.2.0",
+    "appVersionSource": "remote",
+  "projectId": "ad00129e-5569-46b6-a8ec-01d0e9dd5c9"
   },
   "build": {
     "development": {
