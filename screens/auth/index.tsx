@@ -117,9 +117,16 @@ export default function AuthPage() {
     }
 
     // 注册时需要验证码
-    if (!isLogin && !verificationCode) {
-      showError('请填写验证码');
-      return;
+    if (!isLogin) {
+      if (!verificationCode) {
+        showError('请填写验证码');
+        return;
+      }
+      // 验证码格式检查：必须是6位数字
+      if (!/^\d{6}$/.test(verificationCode.trim())) {
+        showError('验证码格式不正确，请输入6位数字');
+        return;
+      }
     }
 
     if (password.length < 6) {
@@ -139,7 +146,7 @@ export default function AuthPage() {
 
     try {
       const endpoint = isLogin ? '/auth/login' : '/auth/register';
-      const body = isLogin ? { email, password } : { name, email, password, verificationCode };
+      const body = isLogin ? { email, password } : { name, email, password, verificationCode: verificationCode.trim() };
 
       /**
        * 服务端文件：server/src/routes/auth.ts
